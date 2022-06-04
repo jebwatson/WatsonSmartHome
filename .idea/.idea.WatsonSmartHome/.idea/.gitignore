@@ -1,0 +1,8 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Rider ignored files
+/contentModel.xml
+/.idea.WatsonSmartHome.iml
+/modules.xml
+/projectSettingsUpdater.xml
