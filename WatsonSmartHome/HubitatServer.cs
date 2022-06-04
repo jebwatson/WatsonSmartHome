@@ -1,6 +1,10 @@
+using System.Collections;
 using System.IO;
 using System.Net;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WatsonSmartHome
 {
@@ -45,6 +49,11 @@ namespace WatsonSmartHome
             
             // Read request
             string request = new StreamReader(context.Request.InputStream).ReadToEnd();
+            
+            JObject hubitatMessage = JObject.Parse(request);
+            JToken hubitatEventToken = hubitatMessage["content"];
+
+            var hubitatEvent = hubitatEventToken?.ToObject<HubitatEvent>();
             
             // Prepare response
             var responseBytes = this.handler.Invoke(request);
