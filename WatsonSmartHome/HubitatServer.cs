@@ -1,67 +1,96 @@
-using System.Collections;
+using System;
 using System.IO;
 using System.Net;
-using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using MediatR;
 using Newtonsoft.Json.Linq;
+using WatsonSmartHome.Devices;
+using WatsonSmartHome.Logging;
+using WatsonSmartHome.Messaging;
 
 namespace WatsonSmartHome
 {
     public delegate byte[] ProcessDataDelegate(string data);
+
     public class HubitatServer
     {
         private const int HandlerThread = 2;
-        private readonly HttpListener listener;
-        private readonly ProcessDataDelegate handler;
-        public HubitatServer(HttpListener listener, string url, ProcessDataDelegate handler)
+        private readonly ILoggingService _loggingService;
+        private readonly IMediator _mediator;
+        private ProcessDataDelegate _handler;
+        private bool _isConfigured;
+        private HttpListener _listener;
+
+        public HubitatServer(IMediator mediator, ILoggingService loggingService)
         {
-            this.listener = listener;
-            this.handler = handler;
-            listener.Prefixes.Add(url);
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _loggingService = loggingService ?? throw new ArgumentNullException(nameof(loggingService));
         }
 
-        public void Start()
+        public HubitatServer Configure(HttpListener listener, string url, ProcessDataDelegate handler)
         {
-            if (this.listener.IsListening) return;
-            
-            this.listener.Start();
+            _listener = listener;
+            _handler = handler;
+            listener.Prefixes.Add(url);
+            _isConfigured = true;
+            return this;
+        }
 
-            for (int i = 0; i < HandlerThread; i++)
+        public Task<HubitatServer> Start()
+        {
+            if (!_isConfigured || _listener.IsListening) return Task.FromResult(this);
+
+            _listener.Start();
+
+            for (var i = 0; i < HandlerThread; i++)
             {
-                this.listener.GetContextAsync().ContinueWith(ProcessRequestHandler);
+                _listener.GetContextAsync().ContinueWith(ProcessRequestHandler);
             }
+
+            return Task.FromResult(this);
         }
 
         public void Stop()
         {
-            if (this.listener.IsListening) this.listener.Stop();
+            if (_listener.IsListening) _listener.Stop();
         }
 
-        private void ProcessRequestHandler(Task<HttpListenerContext> result)
+        private async Task ProcessRequestHandler(Task<HttpListenerContext> result)
         {
+            _loggingService.LogInformation("Processing request");
             var context = result.Result;
 
-            if (!this.listener.IsListening) return;
-            
+            if (!_listener.IsListening) return;
+
             // Start new listener which replaces this
-            this.listener.GetContextAsync().ContinueWith(this.ProcessRequestHandler);
-            
+            _listener.GetContextAsync().ContinueWith(ProcessRequestHandler);
+
             // Read request
             string request = new StreamReader(context.Request.InputStream).ReadToEnd();
-            
+
             JObject hubitatMessage = JObject.Parse(request);
-            JToken hubitatEventToken = hubitatMessage["content"];
+            var hubitatEventToken = hubitatMessage["content"];
 
             var hubitatEvent = hubitatEventToken?.ToObject<HubitatEvent>();
-            
+            IDevice device;
+
+            if (hubitatEvent is not null)
+            {
+                _loggingService.LogInformation("Hubitat event received");
+                device = await _mediator.Send(new CreateDeviceCommand(hubitatEvent), CancellationToken.None);
+                _loggingService.LogInformation($"Device {device.Name} received");
+            }
+
             // Prepare response
-            var responseBytes = this.handler.Invoke(request);
+            var responseBytes = _handler.Invoke(request);
             context.Response.ContentLength64 = responseBytes.Length;
 
             var output = context.Response.OutputStream;
             output.WriteAsync(responseBytes, 0, responseBytes.Length);
             output.Close();
+            
+            _loggingService.LogInformation("Response sent");
         }
     }
 }
