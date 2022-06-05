@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,14 +16,16 @@ namespace WatsonSmartHome
             await hostBuilder.RunConsoleAsync();
         }
 
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureServices((hostingContext, services) =>
+        private static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureServices((_, services) =>
                 {
                     services.AddSingleton<ILoggingService, SerilogService>();
                     services.AddSingleton<IDeviceFactory, DeviceFactory>();
                     services.AddMediatR(Assembly.GetExecutingAssembly());
                     services.AddSingleton<IHostedService, ConsoleApp>();
                 });
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Serilog;
+// ReSharper disable TemplateIsNotCompileTimeConstantProblem
 
 namespace WatsonSmartHome.Logging
 {
@@ -24,7 +25,7 @@ namespace WatsonSmartHome.Logging
             {
                 Log.Information(message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignored
             }
@@ -36,7 +37,7 @@ namespace WatsonSmartHome.Logging
             {
                 Log.Error(exception, message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignored
             }
@@ -48,7 +49,7 @@ namespace WatsonSmartHome.Logging
             {
                 Log.Fatal(exception, message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignored
             }
@@ -60,7 +61,7 @@ namespace WatsonSmartHome.Logging
             {
                 Log.Debug(message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignored
             }
@@ -72,7 +73,7 @@ namespace WatsonSmartHome.Logging
             {
                 Log.Verbose(message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignored
             }

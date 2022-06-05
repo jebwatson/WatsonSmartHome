@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using WatsonSmartHome.Devices;
 using WatsonSmartHome.Logging;
 using WatsonSmartHome.Messaging;
+#pragma warning disable 4014
 
 namespace WatsonSmartHome
 {
@@ -18,9 +19,9 @@ namespace WatsonSmartHome
         private const int HandlerThread = 2;
         private readonly ILoggingService _loggingService;
         private readonly IMediator _mediator;
-        private ProcessDataDelegate _handler;
+        private ProcessDataDelegate _handler = null!;
         private bool _isConfigured;
-        private HttpListener _listener;
+        private HttpListener _listener = null!;
 
         public HubitatServer(IMediator mediator, ILoggingService loggingService)
         {

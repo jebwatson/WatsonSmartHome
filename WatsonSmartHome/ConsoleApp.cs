@@ -36,7 +36,7 @@ namespace WatsonSmartHome
         private async Task StartServer()
         {
             var listener = new HttpListener();
-            var server = await new HubitatServer(_mediator, _loggingService)
+            await new HubitatServer(_mediator, _loggingService)
                 .Configure(listener, "http://192.168.1.237:8567/", ProcessResponse)
                 .Start();
         }

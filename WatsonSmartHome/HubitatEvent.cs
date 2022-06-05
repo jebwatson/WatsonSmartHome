@@ -2,14 +2,14 @@ namespace WatsonSmartHome
 {
     public class HubitatEvent
     {
-        public string Name { get; set; }
-        public string Value { get; set; }
-        public string DisplayName { get; set; }
-        public string DeviceId { get; set; }
-        public string DescriptionText { get; set; }
-        public string Unit { get; set; }
-        public string Type { get; set; }
-        public string Data { get; set; }
+        public string Name { get; set; } = null!;
+        public string Value { get; set; } = null!;
+        public string DisplayName { get; set; } = null!;
+        public string DeviceId { get; set; } = null!;
+        public string DescriptionText { get; set; } = null!;
+        public string Unit { get; set; } = null!;
+        public string Type { get; set; } = null!;
+        public string Data { get; set; } = null!;
     }
     
     //{"content":
