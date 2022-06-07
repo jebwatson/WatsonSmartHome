@@ -37,7 +37,7 @@ namespace WatsonSmartHome
         {
             var listener = new HttpListener();
             await new HubitatServer(_mediator, _loggingService)
-                .Configure(listener, "http://192.168.1.237:8567/", ProcessResponse)
+                .Configure(listener, "http://192.168.1.220:8567/", ProcessResponse)
                 .Start();
         }
 
