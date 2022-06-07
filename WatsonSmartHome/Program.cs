@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WatsonSmartHome.Devices;
@@ -18,7 +19,13 @@ namespace WatsonSmartHome
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
+            
+            
             return Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(_ =>
+                {
+                    _.AddJsonFile("config.json");
+                })
                 .ConfigureServices((_, services) =>
                 {
                     services.AddSingleton<ILoggingService, SerilogService>();

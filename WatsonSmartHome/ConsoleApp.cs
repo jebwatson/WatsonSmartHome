@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using WatsonSmartHome.Logging;
 
 namespace WatsonSmartHome
@@ -11,12 +12,14 @@ namespace WatsonSmartHome
     public class ConsoleApp : IHostedService
     {
         private readonly ILoggingService _loggingService;
+        private readonly IConfiguration _configuration;
         private readonly IMediator _mediator;
 
-        public ConsoleApp(IMediator mediator, ILoggingService loggingService)
+        public ConsoleApp(IMediator mediator, ILoggingService loggingService, IConfiguration configuration)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _loggingService = loggingService ?? throw new ArgumentNullException(nameof(loggingService));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -35,9 +38,17 @@ namespace WatsonSmartHome
 
         private async Task StartServer()
         {
+            var hubitatConnection = _configuration.GetConnectionString("hubitat");
+
+            if (string.IsNullOrEmpty(hubitatConnection))
+            {
+                _loggingService.LogInformation("Could not retrieve hubitat connection string");
+                return;
+            }
+            
             var listener = new HttpListener();
             await new HubitatServer(_mediator, _loggingService)
-                .Configure(listener, "http://192.168.1.220:8567/", ProcessResponse)
+                .Configure(listener, hubitatConnection, ProcessResponse)
                 .Start();
         }
 
